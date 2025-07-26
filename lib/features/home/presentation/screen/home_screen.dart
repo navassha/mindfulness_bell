@@ -101,6 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: AppColors.scaffoldBGColor,
       body: SingleChildScrollView(
         child: Container(
+          height: MediaQuery.sizeOf(context).height,
           decoration: const BoxDecoration(
             image: DecorationImage(
               fit: BoxFit.cover,
