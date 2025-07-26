@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindfulness_bell/core/constants/app_colors.dart';
 import 'package:mindfulness_bell/core/constants/image_model.dart';
@@ -9,6 +10,7 @@ import 'package:mindfulness_bell/core/widget/modified_text.dart';
 import 'package:mindfulness_bell/features/home/presentation/provider/bell_name_provider.dart';
 import 'package:mindfulness_bell/features/home/presentation/provider/image_map_provider.dart';
 import 'package:mindfulness_bell/features/home/presentation/provider/mute_provider.dart';
+import 'package:mindfulness_bell/features/home/presentation/provider/selected_bell_sound_provider.dart';
 import 'package:mindfulness_bell/features/home/presentation/provider/time_interval_provider.dart';
 
 import '../../data/service/notification_service.dart';
@@ -41,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void onSave() {
+  void onSave() async {
     final now = TimeOfDay.now();
     final currentMinutes = now.hour * 60 + now.minute;
     final selectedStart = startTime.hour * 60 + startTime.minute;
@@ -74,6 +76,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+    await NotificationService().flutterLocalNotificationsPlugin.show(
+          1,
+          'Bell sceduled',
+          'The bell sceduled success fully',
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              sound: RawResourceAndroidNotificationSound(
+                  ref.watch(selectedSoundProvider)),
+              'bell_channel',
+              'Bell Notifications',
+              importance: Importance.high,
+              priority: Priority.high,
+              playSound: true,
+            ),
+          ),
+        );
   }
 
   @override
@@ -152,7 +170,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: ref.watch(bellNameProvider).map((bell) {
         final isSelected = selectedBell == bell;
         return GestureDetector(
-          onTap: () => setState(() => selectedBell = bell),
+          onTap: () {
+            setState(() {
+              selectedBell = bell;
+            });
+            if (selectedBell == 'Singing Bowl') {
+              ref.read(selectedSoundProvider.notifier).state = 'singing_bowl';
+            } else if (selectedBell == 'Ohm Bell') {
+              ref.read(selectedSoundProvider.notifier).state = 'ohm_bell';
+            } else if (selectedBell == "Gong") {
+              ref.read(selectedSoundProvider.notifier).state = 'gong';
+            } else {
+              ref.read(selectedSoundProvider.notifier).state = 'singing_bowl';
+            }
+          },
           child: Column(
             children: [
               Container(
