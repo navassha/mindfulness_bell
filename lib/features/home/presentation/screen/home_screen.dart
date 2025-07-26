@@ -60,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return;
     }
 
-    NotificationService().scheduleBellNotifications(
+    await NotificationService().scheduleBellNotifications(
       bell: selectedBell,
       start: startTime,
       end: endTime,

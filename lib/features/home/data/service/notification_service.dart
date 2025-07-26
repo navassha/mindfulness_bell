@@ -13,12 +13,41 @@ class NotificationService {
 
   Future<void> init() async {
     tzdata.initializeTimeZones();
+
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
+
+    const channel = AndroidNotificationChannel(
+      'bell_channel',
+      'Bell Notifications',
+      description: 'Plays bell sounds at intervals',
+      importance: Importance.high,
+      playSound: true,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     await flutterLocalNotificationsPlugin.initialize(initSettings);
   }
 
+  String _getSoundName(String bellName) {
+    switch (bellName) {
+      case 'Singing Bowl':
+        return 'singing_bowl';
+      case 'Ohm Bell':
+        return 'ohm_bell';
+      case 'Gong':
+        return 'gong';
+      default:
+        return 'singing_bowl';
+    }
+  }
+
+  /// 🔔 Schedule notifications using zonedSchedule — works in background/closed
   Future<void> scheduleBellNotifications({
     required String bell,
     required TimeOfDay start,
@@ -26,51 +55,30 @@ class NotificationService {
     required int intervalMinutes,
     required bool muteInSilent,
   }) async {
-    await flutterLocalNotificationsPlugin.cancelAll(); // optional, clear old
+    await flutterLocalNotificationsPlugin.cancelAll();
 
     final now = DateTime.now();
-    final startDateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      start.hour,
-      start.minute,
-    );
-    final endDateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      end.hour,
-      end.minute,
-    );
+    final startDateTime =
+        DateTime(now.year, now.month, now.day, start.hour, start.minute);
+    final endDateTime =
+        DateTime(now.year, now.month, now.day, end.hour, end.minute);
 
-    String soundFileCheck(String bellName) {
-      switch (bellName) {
-        case 'Singing Bowl':
-          return 'singing_bowl';
-        case 'Ohm Bell':
-          return 'ohm_bell';
-        case 'Gong':
-          return 'gong';
-        default:
-          return 'singing_bowl';
-      }
-    }
+    if (endDateTime.isBefore(startDateTime)) return;
 
-    final soundName = soundFileCheck(bell);
+    final soundName = _getSoundName(bell);
     int notificationId = 0;
 
     for (var time = startDateTime;
         time.isBefore(endDateTime);
         time = time.add(Duration(minutes: intervalMinutes))) {
-      final tzDateTime = tz.TZDateTime.from(time, tz.local);
-      if (tzDateTime.isBefore(tz.TZDateTime.now(tz.local))) continue;
+      final tzTime = tz.TZDateTime.from(time, tz.local);
+      if (tzTime.isBefore(tz.TZDateTime.now(tz.local))) continue;
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
         notificationId++,
         "Mindfulness Bell",
         "Ringing the bell: $bell",
-        tzDateTime,
+        tzTime,
         NotificationDetails(
           android: AndroidNotificationDetails(
             'bell_channel',
@@ -88,7 +96,7 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: null,
-        androidScheduleMode: AndroidScheduleMode.exact, // For Android 12+
+        androidScheduleMode: AndroidScheduleMode.exact,
       );
     }
   }
