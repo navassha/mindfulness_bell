@@ -13,6 +13,7 @@ import 'package:mindfulness_bell/features/home/presentation/provider/time_interv
 
 import '../../data/service/notification_service.dart';
 import '../widgets/bottom_row_button.dart';
+import '../widgets/checkbox_tile.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -80,64 +81,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: _appBar(),
       backgroundColor: AppColors.scaffoldBGColor,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage(ImageModel.scaffoldBgImage),
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: AssetImage(ImageModel.scaffoldBgImage),
+            ),
           ),
-        ),
-        padding: golbalPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // bell sound seletion row
-            _bellSelectingRow(),
-            context.customSizedBoxHgt(context, 40),
-            const Center(
-              child: MontserretText(
-                text: "Select a Sound For Your Mindfulness Bell",
-                fontSize: 11.1,
-                color: AppColors.textGrey,
-              ),
-            ),
-            context.customSizedBoxHgt(context, 45),
-            // first tile for select start time
-            _timeTile(
-                "Starts in", startTime.format(context), () => pickTime(true)),
-            // secound tile for select end time
-            _timeTile(
-                "Ends in", endTime.format(context), () => pickTime(false)),
-            // time selecting dropdown
-            _dropdownTile("Repeat in", "$repeatInterval minutes", () {
-              showRepeatDialog();
-            }),
-            CheckboxListTile(
-              value: ref.watch(muteProvider),
-              onChanged: (val) {
-                ref.read(muteProvider.notifier).state = val!;
-              },
-              title: const MontserretText(
-                text: "Mute Bell in Silent Mode",
-                fontSize: 14,
-                color: AppColors.white,
-              ),
-              controlAffinity: ListTileControlAffinity.leading,
-              activeColor: Colors.purpleAccent,
-              checkboxShape: BeveledRectangleBorder(
-                side: BorderSide(
-                  width: context.responsiveSize(0.1),
-                  color: AppColors.white,
-                ),
-                borderRadius: BorderRadius.circular(
-                  context.responsiveSize(2),
+          padding: golbalPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // bell sound seletion row
+              _bellSelectingRow(),
+              context.customSizedBoxHgt(context, 40),
+              const Center(
+                child: MontserretText(
+                  text: "Select a Sound For Your Mindfulness Bell",
+                  fontSize: 11.1,
+                  color: AppColors.textGrey,
                 ),
               ),
-            ),
-            const Spacer(),
-            // bottom row button (cancel , save)
-            BottomRowButton(onTap: onSave),
-          ],
+              context.customSizedBoxHgt(context, 45),
+              // first tile for select start time
+              _timeTile(
+                  "Starts in", startTime.format(context), () => pickTime(true)),
+              // secound tile for select end time
+              _timeTile(
+                  "Ends in", endTime.format(context), () => pickTime(false)),
+              // time selecting dropdown
+              _dropdownTile("Repeat in", "$repeatInterval minutes", () {
+                showRepeatDialog();
+              }),
+// checkbox tile
+              CheckBoxTile(ref: ref),
+              context.customSizedBoxHgt(context, 107),
+              // bottom row button (cancel , save)
+              BottomRowButton(onTap: onSave),
+            ],
+          ),
         ),
       ),
     );
